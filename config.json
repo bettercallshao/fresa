@@ -1,0 +1,49 @@
+{
+    "VersionMajor": 0,
+    "VersionMinor": 0,
+    "DeviceType": "VanilaCore",
+    "HttpserverPort": 8080,
+
+    "GreeterPort": 9000,
+    "CacherCmdPort": 9001,
+    "CacherDatPort": 9002,
+    "ForgetterCmdPort": 9003,
+    "ForgetterDatPort": 9004,
+    "Params": [
+        {
+            "Key": 100,
+            "Name": "a_int",
+            "Type": "i",
+            "Denominator": 100
+        },
+        {
+            "Key": 101,
+            "Name": "a_binary",
+            "Type": "b"
+        },
+        {
+            "Key": 102,
+            "Name": "a_binary",
+            "Type": "b"
+        },
+        {
+            "Key": 103,
+            "Name": "a_float",
+            "Type": "f"
+        }
+    ],
+    "Services": [
+        {
+            "Key": 100,
+            "Name": "greeter"
+        },
+        {
+            "Key": 101,
+            "Name": "cacher"
+        },
+        {
+            "Key": 102,
+            "Name": "forgetter"
+        }
+    ]
+}
