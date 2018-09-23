@@ -17,6 +17,7 @@
             "type": "s"
         }
     ],
-    "cacherPort": 9000,
+    "cacherCmdPort": 9000,
+    "cacherDatPort": 9001,
     "httpserverPort": 8080
 }

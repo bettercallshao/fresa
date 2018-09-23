@@ -1,0 +1,6 @@
+#!/bin/bash
+OLD=$GOPATH
+export GOPATH=$(pwd)
+ln -sf $(pwd)/vendor src/cacher
+go build cacher
+export GOPATH=$OLD
