@@ -1,0 +1,22 @@
+{
+    "cached": [
+        {
+            "key": 100,
+            "name": "temperature",
+            "type": "i",
+            "denominator": 100
+        },
+        {
+            "key": 101,
+            "name": "indicator0",
+            "type": "b"
+        },
+        {
+            "key": 102,
+            "name": "indicator1",
+            "type": "b"
+        }
+    ],
+    "cacherPort": 9000,
+    "httpserverPort": 8080
+}
