@@ -13,8 +13,8 @@
         },
         {
             "key": 102,
-            "name": "indicator1",
-            "type": "b"
+            "name": "somestr",
+            "type": "s"
         }
     ],
     "cacherPort": 9000,
