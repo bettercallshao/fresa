@@ -26,7 +26,7 @@ type Config struct {
 func Load() (Config, error) {
 
     cfg := Config{}
-    fname := "config.xml"
+    fname := "config.json"
 
     // Read the file
     body, err := ioutil.ReadFile(fname)
