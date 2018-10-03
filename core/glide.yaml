@@ -1,9 +1,19 @@
 package: .
 import:
+- package: github.com/spf13/cobra
+  version: v0.0.3
+- package: github.com/spf13/viper
+  version: v1.2.1
 - package: github.com/vmihailenco/msgpack
   version: v4.0.0
+- package: github.com/mitchellh/go-homedir
+  version: v1.0.0
 - package: nanomsg.org/go-mangos
   version: v1.4.0
   subpackages:
   - protocol/rep
   - transport/tcp
+ignore:
+- cacher
+- cli
+- config

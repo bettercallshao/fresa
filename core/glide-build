@@ -7,7 +7,7 @@ OLD_GOPATH=$GOPATH
 export GOPATH=$(pwd)
 
 # all dirs
-DIRS=cacher
+DIRS="cacher cli"
 
 # fix vendor path
 for DIR in $DIRS; do
@@ -15,7 +15,9 @@ for DIR in $DIRS; do
 done
 
 # build
-go build $DIRS
+for DIR in $DIRS; do
+    go build $DIR
+done
 
 # move bins
 mkdir -p bin
