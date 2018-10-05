@@ -1,10 +1,8 @@
 from config import Config
-from forgetter import Petter
+from logger import LogSender
+from watcher import Petter
 import msgpack as msp
 import nanomsg as nng
-
-# global param map
-g_pm = {}
 
 class Param(object):
     def __init__(self, mspdata = None, defi = None):
@@ -19,6 +17,9 @@ class Param(object):
     def Key(self):
         return self._data[0]
 
+    def Value(self):
+        return self._data[1]
+
     def From(self, other):
         # ignore key when comparing, assume they match
         if self._data[1] != other._data[1]:
@@ -30,22 +31,26 @@ class Param(object):
     def Pack(self):
         return msp.packb(self._data)[1:]
 
-def InitParamMap(config):
-    for p in config.Params():
-        g_pm[p['Key']] = Param(defi = p)
-
-def PackParams():
-    # pack everything back to back
-    return b''.join([g_pm[p].Pack() for p in g_pm])
-
 def Serve(config):
     petter = Petter(config, 'cacher')
+    log = LogSender(config, 'cacher')
+
+    # create param map
+    pm = {}
+    for p in config.Params():
+        pm[p['Key']] = Param(defi = p)
 
     rep = nng.Socket(nng.REP)
-    rep.bind('tcp://*:%d' % config.CacherCmdPort())
+    repurl = 'tcp://*:%d' % config.CacherCmdPort()
+    rep.bind(repurl)
 
     pub = nng.Socket(nng.PUB)
-    pub.bind('tcp://*:%d' % config.CacherDatPort())
+    puburl = 'tcp://*:%d' % config.CacherDatPort()
+    pub.bind(puburl)
+
+    log.Send('Server started: ' + config.VersionStr() +
+             ', REP: ' + repurl +
+             ', PUB: ' + puburl)
 
     try:
         while True:
@@ -55,16 +60,21 @@ def Serve(config):
             value = Param(mspdata = data)
             # key 0 is special
             if value.Key() == 0:
-                rep.send(PackParams())
+                # pack everything back to back
+                out = b''.join([pm[p].Pack() for p in pm])
+                rep.send(out)
             else:
                 rep.send('')
                 # don't check for key and let it crash
-                if g_pm[value.Key()].From(value):
+                if pm[value.Key()].From(value):
                     # publish change
                     pub.send(data)
+                    # log it
+                    log.Send('%d <= (%s)' % (value.Key(), str(value.Value())), 1)
     except(KeyboardInterrupt):
         pass
 
+    log.Send('Server stopped')
     petter.Stop()
 
 def Test():
@@ -78,5 +88,4 @@ if __name__ == '__main__':
     Test()
 
     c = Config()
-    InitParamMap(c)
     Serve(c)

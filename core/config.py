@@ -27,8 +27,17 @@ class Config(object):
     def Str(self):
         return json.dumps(self._data)
 
+    def VersionStr(self):
+        return self._data['VersionStr']
+
     def GreeterPort(self):
         return self._data['GreeterPort']
+
+    def LoggerCmdPort(self):
+        return self._data['LoggerCmdPort']
+
+    def LoggerDatPort(self):
+        return self._data['LoggerDatPort']
 
     def CacherCmdPort(self):
         # don't handle exception and let it crash
@@ -37,11 +46,14 @@ class Config(object):
     def CacherDatPort(self):
         return self._data['CacherDatPort']
 
-    def ForgetterCmdPort(self):
-        return self._data['ForgetterCmdPort']
+    def WatcherCmdPort(self):
+        return self._data['WatcherCmdPort']
 
-    def ForgetterDatPort(self):
-        return self._data['ForgetterDatPort']
+    def WatcherDatPort(self):
+        return self._data['WatcherDatPort']
+
+    def LogPath(self):
+        return self._data['LogPath']
 
     def Params(self):
         return self._data['Params']

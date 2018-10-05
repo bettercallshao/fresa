@@ -1,4 +1,5 @@
 from config import Config
+from logger import LogSender
 from threading import Thread
 import fire
 import json
@@ -48,15 +49,15 @@ class Cli(object):
         except(nng.NanoMsgAPIError):
             pass
 
-    def ForgetterSend(self, key):
+    def WatcherSend(self, key):
         sub = nng.Socket(nng.SUB)
         sub.recv_timeout = 1000
         sub.set_string_option(nng.SUB, nng.SUB_SUBSCRIBE, '')
-        sub.connect('tcp://localhost:%d' % self.config.ForgetterDatPort())
+        sub.connect('tcp://localhost:%d' % self.config.WatcherDatPort())
         time.sleep(0.1)
 
         req = nng.Socket(nng.REQ)
-        req.connect('tcp://localhost:%d' % self.config.ForgetterCmdPort())
+        req.connect('tcp://localhost:%d' % self.config.WatcherCmdPort())
         data = msp.packb(key)
         req.send(data)
         got = req.recv()
@@ -66,7 +67,23 @@ class Cli(object):
 
         try:
             data = sub.recv()
-            print('Forgetter: ', msp.unpackb(b'\x92' + data))
+            print('Watcher: ', msp.unpackb(b'\x92' + data))
+        except(nng.NanoMsgAPIError):
+            pass
+
+    def LoggerSend(self, prefix, verblevel, data):
+        sub = nng.Socket(nng.SUB)
+        sub.recv_timeout = 1000
+        sub.set_string_option(nng.SUB, nng.SUB_SUBSCRIBE, '')
+        sub.connect('tcp://localhost:%d' % self.config.LoggerDatPort())
+        time.sleep(0.1)
+
+        ls = LogSender(self.config, prefix)
+        ls.Send(data, verblevel = verblevel)
+
+        try:
+            data = sub.recv()
+            print('Logger: ' + str(data))
         except(nng.NanoMsgAPIError):
             pass
 

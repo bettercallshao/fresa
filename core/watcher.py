@@ -1,4 +1,5 @@
 from config import Config
+from logger import LogSender
 from datetime import datetime
 from threading import Thread
 import time
@@ -29,7 +30,7 @@ def BlockPet(self, config, name):
     req = nng.Socket(nng.REQ)
     req.send_timeout = 100
     req.recv_timeout = 400
-    req.connect('tcp://localhost:%d' % config.ForgetterCmdPort())
+    req.connect('tcp://localhost:%d' % config.WatcherCmdPort())
     while self.alive:
         time.sleep(2.5)
         req.send(data)
@@ -37,9 +38,6 @@ def BlockPet(self, config, name):
             req.recv()
         except(nng.NanoMsgAPIError):
             pass
-
-# global service map
-g_sm = {}
 
 class Service(object):
     def __init__(self, mspdata = None, defi = None, stickon = False):
@@ -55,6 +53,9 @@ class Service(object):
 
     def Key(self):
         return self._key
+
+    def Alive(self):
+        return self._alive
 
     def Pet(self):
         self._timestamp = datetime.now()
@@ -75,23 +76,27 @@ class Service(object):
     def Pack(self):
         return msp.packb([self._key, self._alive])[1:]
 
-def InitServiceMap(config):
+def Serve(config):
+    log = LogSender(config, 'watcher')
+
+    sm = {}
     for s in config.Services():
         # stick our own service to on
-        stickon = s['Name'] == 'forgetter'
-        g_sm[s['Key']] = Service(defi = s, stickon = stickon)
+        stickon = s['Name'] == 'watcher'
+        sm[s['Key']] = Service(defi = s, stickon = stickon)
 
-def PackServices():
-    # pack everything back to back
-    return b''.join([g_sm[s].Pack() for s in g_sm])
-
-def Serve(config):
     rep = nng.Socket(nng.REP)
     rep.recv_timeout = 1000
-    rep.bind('tcp://*:%d' % config.ForgetterCmdPort())
+    repurl = 'tcp://*:%d' % config.WatcherCmdPort()
+    rep.bind(repurl)
 
     pub = nng.Socket(nng.PUB)
-    pub.bind('tcp://*:%d' % config.ForgetterDatPort())
+    puburl = 'tcp://*:%d' % config.WatcherDatPort()
+    pub.bind(puburl)
+
+    log.Send('Server started: ' + config.VersionStr() +
+             ', REP: ' + repurl +
+             ', PUB: ' + puburl)
 
     try:
         while True:
@@ -102,24 +107,29 @@ def Serve(config):
                 value = Service(mspdata = data)
                 # key 0 is special
                 if value.Key() == 0:
-                    rep.send(PackServices())
+                    # pack everything back to back
+                    out = b''.join([sm[s].Pack() for s in sm])
+                    rep.send(out)
                 else:
                     rep.send('')
                     # don't check for key and let it crash
-                    g_sm[value.Key()].Pet()
+                    sm[value.Key()].Pet()
             except(nng.NanoMsgAPIError):
                 # ignore timeouts
                 pass
 
             # calculate and broadcast
-            for s in g_sm:
-                if g_sm[s].Calculate():
-                    pub.send(g_sm[s].Pack())
+            for s in sm:
+                if sm[s].Calculate():
+                    pub.send(sm[s].Pack())
+                    # log it
+                    log.Send('%d <= (%s)' % (sm[s].Key(), sm[s].Alive()), 1)
     except(KeyboardInterrupt):
         pass
+
+    log.Send('Server stopped')
 
 if __name__ == '__main__':
 
     c = Config()
-    InitServiceMap(c)
     Serve(c)

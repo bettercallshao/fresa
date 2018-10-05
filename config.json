@@ -5,10 +5,13 @@
     "HttpserverPort": 8080,
 
     "GreeterPort": 9000,
-    "CacherCmdPort": 9001,
-    "CacherDatPort": 9002,
-    "ForgetterCmdPort": 9003,
-    "ForgetterDatPort": 9004,
+    "LoggerCmdPort": 9001,
+    "LoggerDatPort": 9002,
+    "CacherCmdPort": 9003,
+    "CacherDatPort": 9004,
+    "WatcherCmdPort": 9005,
+    "WatcherDatPort": 9006,
+    "LogPath": "/tmp",
     "Params": [
         {
             "Key": 100,
@@ -39,11 +42,15 @@
         },
         {
             "Key": 101,
-            "Name": "cacher"
+            "Name": "logger"
         },
         {
             "Key": 102,
-            "Name": "forgetter"
+            "Name": "cacher"
+        },
+        {
+            "Key": 103,
+            "Name": "watcher"
         }
     ]
 }
