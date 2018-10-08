@@ -1,0 +1,79 @@
+<html>
+
+<head>
+    <!-- vue is an overkill for this, and I am pretty sure I am not doing it right :( -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+</head>
+
+<body>
+
+    <div id="app">
+        <div v-if="showlist">
+            <div v-for="device in devices">
+                <button v-on:click="connect(device)">connect</button>
+                <label> {{ device.value.name }} </label>
+            </div>
+        </div>
+        <div v-else>
+            <button v-on:click="getDevices">back</button>
+            <div v-for="param in params">
+                <label> {{ getParamName(param.key) }} ({{ param.key }}): {{ param.value }} </label>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                showlist: true,
+                selected: {},
+                devices: [],
+                params: []
+            },
+            methods: {
+                connect: function(device) {
+                    var self = this
+                    $.getJSON('/device/' + device.key, function(data) {
+                        self.selected = data
+                        self.showlist = false
+                    })
+                },
+                getParamName: function(paramKey) {
+                    if (!this.showlist) {
+                        paramCfg = this.selected.value.config.Params
+                        for (var i = 0; i < paramCfg.length; i++) {
+                            if (paramCfg[i].Key == paramKey) {
+                                return paramCfg[i].Name
+                            }
+                        }
+                    }
+                    return ''
+                },
+                getDevices: function() {
+                    var self = this
+                    $.getJSON('/devices', function(data) {
+                        self.devices = data
+                        self.showlist = true
+                    })
+                }
+            },
+            mounted() {
+                this.getDevices()
+
+                // keep doing this every second
+                var self = this
+                var refresh = function(cb) {
+                    $.getJSON('/params', function(data) {
+                        self.params = data
+                    })
+                    setTimeout(() => cb(cb), 1000)
+                }
+                refresh(refresh)
+            }
+        })
+    </script>
+</body>
+    
+</html>
