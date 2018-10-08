@@ -8,6 +8,7 @@ msgpack = "*"
 nanomsg = "*"
 fire = "*"
 gitpython = "*"
+psutil = "*"
 
 [dev-packages]
 

@@ -3,6 +3,8 @@ from logger import LogSender
 from threading import Thread
 import fire
 import json
+import psutil
+import signal
 import socket
 import time
 import msgpack as msp
@@ -12,6 +14,22 @@ class Cli(object):
     def __init__(self):
         self.stop = False
         self.config = Config()
+
+    def Start(self):
+        start = lambda script: psutil.Popen(['python', script], close_fds=True)
+        start('logger.py')
+        time.sleep(0.1)
+        start('greeter.py')
+        start('cacher.py')
+        start('watcher.py')
+
+    def Stop(self):
+        stop = lambda script: [p.send_signal(signal.SIGINT) for p in psutil.process_iter() if tuple(p.cmdline()) == ('python', script)]
+        stop('watcher.py')
+        stop('cacher.py')
+        stop('greeter.py')
+        time.sleep(0.1)
+        stop('logger.py')
 
     def Greeter(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
