@@ -12,19 +12,32 @@ For Ubuntu
     pipenv install
 
 ## Run
-* Start
+Start
+
     pipenv run python cli.py Start
-* Stop
+
+Stop
+
     pipenv run python cli.py Stop
-* Interact with cacher
+
+Interact with cacher
+
     pipenv run python cli.py CacherSend "[0, 0]"
-* Interact with watcher
+
+Interact with watcher
+
     pipenv run python cli.py CacherSend 0
-* Interact with greeter
+
+Interact with greeter
+
     pipenv run python cli.py Greeter
-* Interact with logger
+
+Interact with logger
+
     pipenv run python cli.py LoggerSend cli 1 "sample log"
-* Consult help
+
+Consult help
+
     pipenv run python cli.py --help
 
 ## Description
