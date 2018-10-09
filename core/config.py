@@ -16,53 +16,18 @@ class Config(object):
     def __init__(self):
         fname = '../config.json'
         with open(fname) as f:
-            self._str = f.read()
-            self._data = json.loads(self._str)
+            self.__dict__ = json.loads(f.read())
 
-        self._data['VersionStr'] = 'v%d.%d %s' % (
-            self._data['VersionMajor'],
-            self._data['VersionMinor'],
+        self.VersionStr = 'v%d.%d %s' % (
+            self.VersionMajor,
+            self.VersionMinor,
             GetGitInfo())
 
     def Str(self):
-        return json.dumps(self._data)
-
-    def VersionStr(self):
-        return self._data['VersionStr']
-
-    def GreeterPort(self):
-        return self._data['GreeterPort']
-
-    def LoggerCmdPort(self):
-        return self._data['LoggerCmdPort']
-
-    def LoggerDatPort(self):
-        return self._data['LoggerDatPort']
-
-    def CacherCmdPort(self):
-        # don't handle exception and let it crash
-        return self._data['CacherCmdPort']
-
-    def CacherDatPort(self):
-        return self._data['CacherDatPort']
-
-    def WatcherCmdPort(self):
-        return self._data['WatcherCmdPort']
-
-    def WatcherDatPort(self):
-        return self._data['WatcherDatPort']
-
-    def LogPath(self):
-        return self._data['LogPath']
-
-    def Params(self):
-        return self._data['Params']
-
-    def Services(self):
-        return self._data['Services']
+        return json.dumps(self.__dict__)
 
     def __repr__(self):
-        return json.dumps(self._data)
+        return self.Str()
 
 if __name__ == '__main__':
     c = Config()

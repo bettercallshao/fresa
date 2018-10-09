@@ -19,16 +19,16 @@ class Cli(object):
         start = lambda script: psutil.Popen(['python', script], close_fds=True)
         start('logger.py')
         time.sleep(0.1)
+        start('watcher.py')
         start('greeter.py')
         start('cacher.py')
-        start('watcher.py')
 
     def Stop(self):
         stop = lambda script: [p.send_signal(signal.SIGINT) for p in psutil.process_iter() if tuple(p.cmdline()) == ('python', script)]
-        stop('watcher.py')
         stop('cacher.py')
         stop('greeter.py')
-        time.sleep(0.1)
+        stop('watcher.py')
+        time.sleep(5)
         stop('logger.py')
 
     def Greeter(self):
@@ -36,7 +36,7 @@ class Cli(object):
         sock.settimeout(1.0)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         # broadcast with empty message
-        sent = sock.sendto(b'', ('<broadcast>', self.config.GreeterPort()))
+        sent = sock.sendto(b'', ('<broadcast>', self.config.GreeterPort))
         while True:
             try:
                 data, server = sock.recvfrom(4096)
@@ -45,25 +45,30 @@ class Cli(object):
             except(socket.timeout):
                 break
 
-    def CacherSend(self, key, value):
+    def CacherSend(self, array):
         sub = nng.Socket(nng.SUB)
         sub.recv_timeout = 1000
         sub.set_string_option(nng.SUB, nng.SUB_SUBSCRIBE, '')
-        sub.connect('tcp://localhost:%d' % self.config.CacherDatPort())
+        sub.connect('tcp://localhost:%d' % self.config.CacherDatPort)
         time.sleep(0.1)
 
         req = nng.Socket(nng.REQ)
-        req.connect('tcp://localhost:%d' % self.config.CacherCmdPort())
-        data = msp.packb([key, value])[1:]
-        req.send(data)
+        req.connect('tcp://localhost:%d' % self.config.CacherCmdPort)
+        pkr = msp.Packer(autoreset = False)
+        for a in array:
+            pkr.pack(a)
+        req.send(pkr.bytes())
         got = req.recv()
         if got:
-            # this is a little hacky, make the parser think it's a list
-            print(msp.unpackb(bytes([len(got) + 0x90]) + got))
+            upk = msp.Unpacker()
+            upk.feed(got)
+            print([a for a in upk])
 
         try:
             data = sub.recv()
-            print('Cacher: ', msp.unpackb(b'\x92' + data))
+            upk = msp.Unpacker()
+            upk.feed(data)
+            print('Cacher: ' + str([a for a in upk]))
         except(nng.NanoMsgAPIError):
             pass
 
@@ -71,21 +76,24 @@ class Cli(object):
         sub = nng.Socket(nng.SUB)
         sub.recv_timeout = 1000
         sub.set_string_option(nng.SUB, nng.SUB_SUBSCRIBE, '')
-        sub.connect('tcp://localhost:%d' % self.config.WatcherDatPort())
+        sub.connect('tcp://localhost:%d' % self.config.WatcherDatPort)
         time.sleep(0.1)
 
         req = nng.Socket(nng.REQ)
-        req.connect('tcp://localhost:%d' % self.config.WatcherCmdPort())
+        req.connect('tcp://localhost:%d' % self.config.WatcherCmdPort)
         data = msp.packb(key)
         req.send(data)
         got = req.recv()
         if got:
-            # this is a little hacky, make the parser think it's a list
-            print(msp.unpackb(bytes([len(got) + 0x90]) + got))
+            upk = msp.Unpacker()
+            upk.feed(got)
+            print([a for a in upk])
 
         try:
             data = sub.recv()
-            print('Watcher: ', msp.unpackb(b'\x92' + data))
+            upk = msp.Unpacker()
+            upk.feed(data)
+            print('Watcher: ' + str([a for a in upk]))
         except(nng.NanoMsgAPIError):
             pass
 
@@ -93,7 +101,7 @@ class Cli(object):
         sub = nng.Socket(nng.SUB)
         sub.recv_timeout = 1000
         sub.set_string_option(nng.SUB, nng.SUB_SUBSCRIBE, '')
-        sub.connect('tcp://localhost:%d' % self.config.LoggerDatPort())
+        sub.connect('tcp://localhost:%d' % self.config.LoggerDatPort)
         time.sleep(0.1)
 
         ls = LogSender(self.config, prefix)

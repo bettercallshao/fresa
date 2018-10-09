@@ -4,32 +4,24 @@ from watcher import Petter
 import msgpack as msp
 import nanomsg as nng
 
-class Param(object):
-    def __init__(self, mspdata = None, defi = None):
-        if mspdata:
-            # make the two independant object an array for easier parsing
-            self._data = msp.unpackb(b'\x92' + mspdata)
-        elif defi:
-            self._data = [defi['Key'], None]
-        else:
-            self._data = [None, None]
+def PackMap(pm):
+    pkr = msp.Packer(autoreset = False)
+    for key in pm:
+        pkr.pack(key)
+        pkr.pack(pm[key])
+    return pkr.bytes()
 
-    def Key(self):
-        return self._data[0]
+def UnpackValue(pm, key, upk):
+    value = upk.unpack()
+    if pm[key] == value:
+        return False
+    else:
+        pm[key] = value
+        return True
 
-    def Value(self):
-        return self._data[1]
-
-    def From(self, other):
-        # ignore key when comparing, assume they match
-        if self._data[1] != other._data[1]:
-            self._data[1] = other._data[1]
-            return True
-        else:
-            return False
-
-    def Pack(self):
-        return msp.packb(self._data)[1:]
+def Notify(pm, key, pub, log):
+    pub.send(PackMap({ key: pm[key] }))
+    log.Send('%d <= (%s)' % (key, str(pm[key])), 1)
 
 def Serve(config):
     petter = Petter(config, 'cacher')
@@ -37,50 +29,65 @@ def Serve(config):
 
     # create param map
     pm = {}
-    for p in config.Params():
-        pm[p['Key']] = Param(defi = p)
+    for p in config.Params:
+        pm[p['Key']] = None
+
+    sm = {}
+    for s in config.Series:
+        sm[s['Key']] = s['Serie']
 
     rep = nng.Socket(nng.REP)
-    repurl = 'tcp://*:%d' % config.CacherCmdPort()
+    repurl = 'tcp://*:%d' % config.CacherCmdPort
     rep.bind(repurl)
 
     pub = nng.Socket(nng.PUB)
-    puburl = 'tcp://*:%d' % config.CacherDatPort()
+    puburl = 'tcp://*:%d' % config.CacherDatPort
     pub.bind(puburl)
 
-    log.Send('Server started: ' + config.VersionStr() +
+    log.Send('Server started: ' + config.VersionStr +
              ', REP: ' + repurl +
              ', PUB: ' + puburl)
 
     try:
         while True:
+            # prepare a stream unpacker
+            upk = msp.Unpacker()
             # wait for new msg
-            data = rep.recv()
-            # convert to param value
-            value = Param(mspdata = data)
-            # key 0 is special
-            if value.Key() == 0:
-                # pack everything back to back
-                out = b''.join([pm[p].Pack() for p in pm])
-                rep.send(out)
-            else:
+            upk.feed(rep.recv())
+            # find key
+            key = upk.unpack()
+            if key == 0:
+                # key 0 is special
+                rep.send(PackMap(pm))
+            elif key < 0:
+                # series
                 rep.send('')
-                # don't check for key and let it crash
-                if pm[value.Key()].From(value):
-                    # publish change
-                    pub.send(data)
-                    # log it
-                    log.Send('%d <= (%s)' % (value.Key(), str(value.Value())), 1)
+                serie = sm[key]
+                for paramKey in serie:
+                    print(paramKey)
+                    if UnpackValue(pm, paramKey, upk):
+                        Notify(pm, paramKey, pub, log)
+            else:
+                # one param
+                rep.send('')
+                if UnpackValue(pm, key, upk):
+                    Notify(pm, key, pub, log)
+
     except(KeyboardInterrupt):
         pass
 
-    log.Send('Server stopped')
     petter.Stop()
+    log.Send('Server stopped')
 
 def Test():
-    data = b'\x01\x02'
-    value = Param(mspdata = data)
-    assert(value.Pack() == data)
+    pm = { 100: 80 }
+    data = PackMap({ 100: 99 })
+    upk = msp.Unpacker()
+    upk.feed(data)
+    key = upk.unpack()
+    value = UnpackValue(pm, key, upk)
+    assert(key == 100)
+    assert(pm[key] == 99)
 
 if __name__ == '__main__':
 

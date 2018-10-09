@@ -1,5 +1,5 @@
 from config import Config
-from logger import LogSender
+import logger
 from datetime import datetime
 from threading import Thread
 import time
@@ -19,7 +19,7 @@ class Petter(object):
 
 def BlockPet(self, config, name):
     data = None
-    for s in config.Services():
+    for s in config.Services:
         if s['Name'] == name:
             data = msp.packb(s['Key'])
     # can't continue without an entry in config
@@ -30,7 +30,7 @@ def BlockPet(self, config, name):
     req = nng.Socket(nng.REQ)
     req.send_timeout = 100
     req.recv_timeout = 400
-    req.connect('tcp://localhost:%d' % config.WatcherCmdPort())
+    req.connect('tcp://localhost:%d' % config.WatcherCmdPort)
     while self.alive:
         time.sleep(2.5)
         req.send(data)
@@ -73,28 +73,29 @@ class Service(object):
             else:
                 return False
 
-    def Pack(self):
-        return msp.packb([self._key, self._alive])[1:]
+    def ToPack(self, pkr):
+        pkr.pack(self._key)
+        pkr.pack(self._alive)
 
 def Serve(config):
-    log = LogSender(config, 'watcher')
+    log = logger.LogSender(config, 'watcher')
 
     sm = {}
-    for s in config.Services():
+    for s in config.Services:
         # stick our own service to on
         stickon = s['Name'] == 'watcher'
         sm[s['Key']] = Service(defi = s, stickon = stickon)
 
     rep = nng.Socket(nng.REP)
     rep.recv_timeout = 1000
-    repurl = 'tcp://*:%d' % config.WatcherCmdPort()
+    repurl = 'tcp://*:%d' % config.WatcherCmdPort
     rep.bind(repurl)
 
     pub = nng.Socket(nng.PUB)
-    puburl = 'tcp://*:%d' % config.WatcherDatPort()
+    puburl = 'tcp://*:%d' % config.WatcherDatPort
     pub.bind(puburl)
 
-    log.Send('Server started: ' + config.VersionStr() +
+    log.Send('Server started: ' + config.VersionStr +
              ', REP: ' + repurl +
              ', PUB: ' + puburl)
 
@@ -108,8 +109,10 @@ def Serve(config):
                 # key 0 is special
                 if value.Key() == 0:
                     # pack everything back to back
-                    out = b''.join([sm[s].Pack() for s in sm])
-                    rep.send(out)
+                    pkr = msp.Packer(autoreset = False)
+                    for s in sm:
+                        sm[s].ToPack(pkr)
+                    rep.send(pkr.bytes())
                 else:
                     rep.send('')
                     # don't check for key and let it crash
@@ -121,7 +124,9 @@ def Serve(config):
             # calculate and broadcast
             for s in sm:
                 if sm[s].Calculate():
-                    pub.send(sm[s].Pack())
+                    pkr = msp.Packer(autoreset = False)
+                    sm[s].ToPack(pkr)
+                    pub.send(pkr.bytes())
                     # log it
                     log.Send('%d <= (%s)' % (sm[s].Key(), sm[s].Alive()), 1)
     except(KeyboardInterrupt):

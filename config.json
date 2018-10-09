@@ -35,21 +35,33 @@
             "Type": "f"
         }
     ],
+    "Series": [
+        {
+            "Key": -100,
+            "Name": "a_serie",
+            "Serie": [100, 101, 102, 103]
+        },
+        {
+            "Key": -101,
+            "Name": "another_serie",
+            "Serie": [101, 102, 103, 100]
+        }
+    ],
     "Services": [
         {
-            "Key": 100,
+            "Key": 1,
             "Name": "greeter"
         },
         {
-            "Key": 101,
+            "Key": 2,
             "Name": "logger"
         },
         {
-            "Key": 102,
+            "Key": 3,
             "Name": "cacher"
         },
         {
-            "Key": 103,
+            "Key": 4,
             "Name": "watcher"
         }
     ]

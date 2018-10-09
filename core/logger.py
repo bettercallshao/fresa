@@ -1,4 +1,5 @@
 from config import Config
+import watcher
 from datetime import datetime
 import os
 import time
@@ -7,7 +8,12 @@ import nanomsg as nng
 
 def MspToStr(sm, data):
     # decode (ask for a tuple), let it crash here if can't unpack
-    verblevel, service, timestamp, line = msp.unpackb(b'\x94' + data, use_list=False)
+    upk = msp.Unpacker()
+    upk.feed(data)
+    verblevel = upk.unpack()
+    service = upk.unpack()
+    timestamp = upk.unpack()
+    line = upk.unpack()
     servicename = ''
     try:
         servicename = sm[service]
@@ -21,49 +27,58 @@ class LogSender(object):
     def __init__(self, config, servicename):
         # find service key from service name
         self.service = 0
-        for s in config.Services():
+        for s in config.Services:
             if s['Name'] == servicename:
                 self.service = s['Key']
                 break
         self.push = nng.Socket(nng.PUSH)
-        self.push.connect('tcp://localhost:%d' % config.LoggerCmdPort())
+        self.push.send_timeout = 1
+        self.push.connect('tcp://localhost:%d' % config.LoggerCmdPort)
         time.sleep(0.1)
 
     def Send(self, data, verblevel = 0):
         # take time.time() (seconds since epoc) as time stamp, ignore sub milli
-        out = msp.packb([verblevel, self.service, int(datetime.utcnow().timestamp() * 1000), data])[1:]
-        self.push.send(out)
+        pkr = msp.Packer(autoreset = False)
+        pkr.pack(verblevel)
+        pkr.pack(self.service)
+        pkr.pack(int(datetime.utcnow().timestamp() * 1000))
+        pkr.pack(data)
+        try:
+            self.push.send(pkr.bytes())
+        except(nng.NanoMsgAPIError):
+            pass
 
 def OpenNewFile(config):
-    path = config.LogPath() + '/' + datetime.now().isoformat() + '.log'
+    path = config.LogPath + '/' + datetime.now().isoformat() + '.log'
     # don't handle exception and let it crash
     f = open(path, 'w')
     return f
 
 def Serve(config):
     # make sure the dir exists
-    if not os.path.exists(config.LogPath()):
-        os.makedirs(config.LogPath())
+    if not os.path.exists(config.LogPath):
+        os.makedirs(config.LogPath)
+
+    petter = watcher.Petter(config, 'logger')
+    log = LogSender(config, 'logger')
 
     # map of service key to name
     sm = {}
-    for s in config.Services():
+    for s in config.Services:
         sm[s['Key']] = s['Name']
 
     pull = nng.Socket(nng.PULL)
-    pullurl = 'tcp://*:%d' % config.LoggerCmdPort()
+    pullurl = 'tcp://*:%d' % config.LoggerCmdPort
     pull.bind(pullurl)
 
     pub = nng.Socket(nng.PUB)
-    puburl = 'tcp://*:%d' % config.LoggerDatPort()
+    puburl = 'tcp://*:%d' % config.LoggerDatPort
     pub.bind(puburl)
 
     f = OpenNewFile(config)
     count = 0
 
-    # log
-    log = LogSender(config, 'logger')
-    log.Send('Server started: ' + config.VersionStr() +
+    log.Send('Server started: ' + config.VersionStr +
              ', PULL: ' + pullurl +
              ', PUB: ' + puburl)
 
@@ -94,7 +109,9 @@ def Serve(config):
     except(KeyboardInterrupt):
         pass
 
+    print('Logger out', file=f)
     f.close()
+    petter.Stop()
 
 def Test():
     sm = {100: 'AA'}

@@ -9,10 +9,10 @@ def Serve(config):
 
     # create udp server
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    addr = ('0.0.0.0', config.GreeterPort())
+    addr = ('0.0.0.0', config.GreeterPort)
     sock.bind(addr)
 
-    log.Send('Server started: ' + config.VersionStr() +
+    log.Send('Server started: ' + config.VersionStr +
              ', UDP: ' + str(addr))
 
     try:
@@ -24,8 +24,8 @@ def Serve(config):
     except(KeyboardInterrupt):
         pass
 
-    log.Send('Server stopped')
     petter.Stop()
+    log.Send('Server stopped')
 
 if __name__ == '__main__':
     c = Config()
