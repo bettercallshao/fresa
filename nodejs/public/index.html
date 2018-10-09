@@ -4,6 +4,7 @@
     <!-- vue is an overkill for this, and I am pretty sure I am not doing it right :( -->
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 </head>
 
 <body>
@@ -17,9 +18,20 @@
         </div>
         <div v-else>
             <button v-on:click="getDevices">back</button>
-            <div v-for="param in params">
-                <label> {{ getParamName(param.key) }} ({{ param.key }}): {{ param.value }} </label>
-            </div>
+            <table class="table table-bordered">
+                <thead>
+                    <tr><td>Name</td><td>Type</td><td>Denominator</td><td>Key</td><td>Value</td></tr>
+                </thead>
+                <tbody>
+                    <tr v-for="param in params">
+                        <td>{{ param.cfg.Name }}</td>
+                        <td>{{ param.cfg.Type }}</td>
+                        <td>{{ param.cfg.Denominator }}</td>
+                        <td>{{ param.key }}</td>
+                        <td>{{ param.value }}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -40,16 +52,14 @@
                         self.showlist = false
                     })
                 },
-                getParamName: function(paramKey) {
-                    if (!this.showlist) {
-                        paramCfg = this.selected.value.config.Params
-                        for (var i = 0; i < paramCfg.length; i++) {
-                            if (paramCfg[i].Key == paramKey) {
-                                return paramCfg[i].Name
-                            }
+                getParamCfg: function(paramKey) {
+                    paramCfg = this.selected.value.config.Params
+                    for (var i = 0; i < paramCfg.length; i++) {
+                        if (paramCfg[i].Key == paramKey) {
+                            return paramCfg[i]
                         }
                     }
-                    return ''
+                    return null
                 },
                 getDevices: function() {
                     var self = this
@@ -65,9 +75,14 @@
                 // keep doing this every second
                 var self = this
                 var refresh = function(cb) {
-                    $.getJSON('/params', function(data) {
-                        self.params = data
-                    })
+                    if (!self.showlist) {
+                        $.getJSON('/params', function(data) {
+                            Object.keys(data).map(function(i) {
+                                data[i].cfg = self.getParamCfg(data[i].key)
+                            })
+                            self.params = data
+                        })
+                    }
                     setTimeout(() => cb(cb), 1000)
                 }
                 refresh(refresh)

@@ -64,20 +64,25 @@ const server = http.createServer((request, response) => {
         // collect udp response and reply in 0.5 seconds
         udpSend()
         setTimeout(() => {
-            response.end(JSON.stringify(mapToList(devices)))
+            sendjson(response, mapToList(devices))
         }, 500)
     } else if (url.startsWith('/device/')) {
         addr = url.slice(8)
         // connect to the addr
         cacher.connect(addr, devices[addr].config)
         // respond with addr and config
-        response.end(JSON.stringify({ key: addr, value: devices[addr] }))
+        sendjson(response, { key: addr, value: devices[addr] })
     } else if (url == '/params') {
-        response.end(JSON.stringify(mapToList(cacher.params)))
+        sendjson(response, mapToList(cacher.params))
     } else {
         stat(request, response, { public: 'public' })
     }
 })
+
+function sendjson(response, o) {
+    response.writeHead(200, { "Content-Type": "application/json" })
+    response.end(JSON.stringify(o))
+}
  
 server.listen(3000, () => {
   console.log('View server running at 3000')
