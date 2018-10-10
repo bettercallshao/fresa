@@ -7,7 +7,7 @@ namespace FresaClient
     {
         [Test()]
         public void TestCase()
-		{
+        {
         }
     }
 }

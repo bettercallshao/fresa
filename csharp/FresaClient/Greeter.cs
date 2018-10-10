@@ -8,9 +8,9 @@ namespace FresaClient
 {
     public class Greeter
     {
-		public static Dictionary<string, Dictionary<string, object>> Search()
+        public static Dictionary<string, Config> Search()
         {
-			var d = new Dictionary<string, Dictionary<string, object>>();
+            var d = new Dictionary<string, Config>();
   
             try
             {
@@ -29,21 +29,21 @@ namespace FresaClient
                     byte[] r = udp.Receive(ref remote);
 
                     if (r.Any())
-				    {
+                    {
                         // there could be duplicate if broadcast reach host via mult routes
                         var ip = remote.Address.ToString();
-						// parse config into map
-						var config = Util.BytesToJson(r);
-						d[ip] = config;
+                        // parse config into map
+                        var config = Config.FromBytes(r);
+                        d[ip] = config;
                     }
                     else
-				    {
-						// receive timed out
+                    {
+                        // receive timed out
                         break;
                     }
                 }
             }
-			catch (Exception)
+            catch (Exception)
             {
             }
 

@@ -46,7 +46,7 @@
   <ItemGroup>
     <Compile Include="Test.cs" />
     <Compile Include="Greeter.cs" />
-    <Compile Include="Util.cs" />
+    <Compile Include="Config.cs" />
     <Compile Include="Cacher.cs" />
   </ItemGroup>
   <ItemGroup>

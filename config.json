@@ -26,8 +26,8 @@
         },
         {
             "Key": 102,
-            "Name": "a_binary",
-            "Type": "b"
+            "Name": "a_string",
+            "Type": "s"
         },
         {
             "Key": 103,

@@ -57,5 +57,11 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FresaClient\FresaClient.csproj">
+      <Project>{A9CAFC92-CA18-4169-894F-BEDDC5AA00B2}</Project>
+      <Name>FresaClient</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
