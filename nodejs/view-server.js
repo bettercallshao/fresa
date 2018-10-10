@@ -8,8 +8,8 @@
 const dgram = require('dgram')
 const stat = require('serve-handler')
 const http = require('http')
-const cacherClient = require('./cacherclient')
-const greeterClient = require('./greeterclient')
+const cacherClient = require('./cacher-client')
+const greeterClient = require('./greeter-client')
 
 // ===== Utils =====
 function mapToList(m) {
