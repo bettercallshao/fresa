@@ -4,7 +4,7 @@
 const dgram = require('dgram')
 
 class Client {
-    constructor(port) {
+    constructor() {
         // state
         this.devices = {}
 
@@ -12,7 +12,7 @@ class Client {
         this.udp = dgram.createSocket('udp4')
 
         // bind and send (dgram package requires to bind first, port number is abitrary)
-        this.udp.bind({ port: port }, function() {
+        this.udp.bind({ port: null }, function() {
             // only do these after bind takes effect
             this.udp.setBroadcast(true)
         }.bind(this))
