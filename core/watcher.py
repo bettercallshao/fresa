@@ -39,23 +39,11 @@ def BlockPet(self, config, name):
         except(nng.NanoMsgAPIError):
             pass
 
-class Service(object):
-    def __init__(self, mspdata = None, defi = None, stickon = False):
-        if mspdata:
-            self._key = msp.unpackb(mspdata)
-        elif defi:
-            self._key = defi['Key']
-        else:
-            self._key = None
+class StopWatch(object):
+    def __init__(self, stickon = False):
+        self.alive = True
         self._timestamp = datetime.now()
-        self._alive = True
         self._stickon = stickon
-
-    def Key(self):
-        return self._key
-
-    def Alive(self):
-        return self._alive
 
     def Pet(self):
         self._timestamp = datetime.now()
@@ -67,15 +55,20 @@ class Service(object):
             now = datetime.now()
             delta = now - self._timestamp
             alive = delta.total_seconds() < 5
-            if self._alive != alive:
-                self._alive = alive
+            if self.alive != alive:
+                self.alive = alive
                 return True
             else:
                 return False
 
-    def ToPack(self, pkr):
-        pkr.pack(self._key)
-        pkr.pack(self._alive)
+def PackMap(sm):
+    # pack everything back to back
+    pkr = msp.Packer(autoreset = False)
+    for s in sm:
+        pkr.pack(s)
+        pkr.pack(sm[s].alive)
+
+    return pkr.bytes()
 
 def Serve(config):
     log = logger.LogSender(config, 'watcher')
@@ -84,7 +77,7 @@ def Serve(config):
     for s in config.Services:
         # stick our own service to on
         stickon = s['Name'] == 'watcher'
-        sm[s['Key']] = Service(defi = s, stickon = stickon)
+        sm[s['Key']] = StopWatch(stickon = stickon)
 
     rep = nng.Socket(nng.REP)
     rep.recv_timeout = 1000
@@ -105,30 +98,24 @@ def Serve(config):
                 # wait for new msg
                 data = rep.recv()
                 # convert to service
-                value = Service(mspdata = data)
+                key = msp.unpackb(data)
                 # key 0 is special
-                if value.Key() == 0:
-                    # pack everything back to back
-                    pkr = msp.Packer(autoreset = False)
-                    for s in sm:
-                        sm[s].ToPack(pkr)
-                    rep.send(pkr.bytes())
+                if key == 0:
+                    rep.send(PackMap(sm))
                 else:
                     rep.send('')
                     # don't check for key and let it crash
-                    sm[value.Key()].Pet()
+                    sm[key].Pet()
             except(nng.NanoMsgAPIError):
                 # ignore timeouts
                 pass
 
             # calculate and broadcast
-            for s in sm:
-                if sm[s].Calculate():
-                    pkr = msp.Packer(autoreset = False)
-                    sm[s].ToPack(pkr)
-                    pub.send(pkr.bytes())
+            for key in sm:
+                if sm[key].Calculate():
+                    pub.send(PackMap({ key: sm[key] }))
                     # log it
-                    log.Send('%d <= (%s)' % (sm[s].Key(), sm[s].Alive()), 1)
+                    log.Send('%d <= (%s)' % (key, sm[key].alive), 1)
     except(KeyboardInterrupt):
         pass
 
