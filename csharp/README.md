@@ -4,9 +4,11 @@ Library is yet to complete. UI can select device and interact with parameters.
 
 ## Files
 Library
+
     ./FresaClient
 
 UI
+
     ./Gui
 
 ## Troubleshooting
