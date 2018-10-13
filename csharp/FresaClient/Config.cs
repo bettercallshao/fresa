@@ -10,7 +10,7 @@ namespace FresaClient
         public int CacherCmdPort = 0;
         public int CacherDatPort = 0;
         public string VersionStr = "";
-        public List<Param> Params;
+        public List<Param> Params = new List<Param>();
 
         public static Config FromBytes(byte[] bytes)
         {
