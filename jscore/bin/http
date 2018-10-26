@@ -1,0 +1,27 @@
+#!/usr/bin/env node
+
+/**
+ * Http: Http proxy for websockets
+ *
+ * Copyright (c) Shaoqing Tan. All rights reserved.
+ */
+
+const express = require('express');
+const getConfig = require('../lib/config.js');
+const { getProxy, getServeConfig } = require('../lib/http.js');
+const LoggerClient = require('../lib/logger-client.js');
+
+// wait for everything else to start first
+setTimeout(() => {
+  const config = getConfig();
+  const logger = new LoggerClient({ config, addr: 'localhost', prefix: 'Http' });
+  const proxy = getProxy(logger);
+  const serve = getServeConfig(config);
+
+  const app = express();
+  app.use(serve);
+  app.use(proxy);
+
+  const server = app.listen(config.HttpPort);
+  server.on('upgrade', proxy.upgrade);
+}, 1000);

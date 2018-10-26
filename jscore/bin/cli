@@ -1,0 +1,46 @@
+#!/usr/bin/env node
+
+/**
+ * Cli: Command line utility
+ *
+ * Copyright (c) Shaoqing Tan. All rights reserved.
+ */
+
+const program = require('commander');
+const msp = require('msgpack-lite');
+
+const getConfig = require('../lib/config.js');
+const ReqsubClient = require('../lib/reqsub-client.js');
+
+function p(s) { console.log(s); }
+
+const config = getConfig();
+
+program
+  .command('version')
+  .action(() => {
+    p(config.VersionStr);
+  });
+
+program
+  .command('cacher [list]')
+  .action((input) => {
+    // todo: avoid using eval
+    const l = eval(input);
+    const c = new ReqsubClient({
+      reqCb: (buf) => {
+        if (buf.length) p(msp.decode(buf));
+      },
+      subCb: (buf) => {
+        p(msp.decode(buf));
+      },
+    });
+    c.connect({ addr: 'localhost', reqPort: config.CacherCmdPort, subPort: config.CacherDatPort }, () => {
+      c.send(msp.encode(l));
+    });
+    setTimeout(() => {
+      c.close();
+    }, 100);
+  });
+
+setTimeout(() => { program.parse(process.argv); }, 50);

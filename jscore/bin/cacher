@@ -1,0 +1,24 @@
+#!/usr/bin/env node
+
+/**
+ * Cacher: Parameter server
+ *
+ * Copyright (c) Shaoqing Tan. All rights reserved.
+ */
+
+const Cacher = require('../lib/cacher.js');
+const LoggerClient = require('../lib/logger-client.js');
+const getConfig = require('../lib/config.js');
+
+// give logger 500ms to start first
+setTimeout(() => {
+  const c = getConfig();
+  const l = new LoggerClient({ config: c, addr: 'localhost', prefix: 'Cacher' });
+  const s = new Cacher({ config: c, logger: l });
+  process.on('SIGINT', () => {
+    s.close();
+    setTimeout(() => {
+      l.close();
+    }, 100);
+  });
+}, 500);
