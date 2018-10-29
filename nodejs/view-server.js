@@ -48,6 +48,10 @@ const server = http.createServer((request, response) => {
         sendjson(response, { key: addr, value: greeter.devices[addr] })
     } else if (url == '/params') {
         sendjson(response, mapToList(cacher.params))
+    } else if (url.startsWith('/param/')) {
+        let parts = url.slice(7).split('/');
+        sendjson(response, {});
+        cacher.setStr(parts[0], parts[1]);
     } else {
         stat(request, response, { public: 'public' })
     }

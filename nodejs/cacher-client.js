@@ -15,8 +15,10 @@ class Client {
         this.params = {}
 
         this.req.on('data', function(buf) {
-            // we expect the exact number of params in the config
-            this.fromBuf(buf, this.config.Params.length)
+            if (buf.length > 0) {
+                // we expect the exact number of params in the config
+                this.fromBuf(buf, this.config.Params.length)
+            }
         }.bind(this))
 
         this.sub.on('data', function(buf) {
@@ -52,6 +54,32 @@ class Client {
             // request for all params
             this.req.send(Buffer.from([0x0, 0x0]))
         }.bind(this), 100)
+    }
+
+    setStr(key, value) {
+        key = parseInt(key);
+        let t = null;
+        const paramCfg = this.config.Params;
+        for (var i = 0; i < paramCfg.length; i++) {
+            if (paramCfg[i].Key === key) {
+                t = paramCfg[i].Type;
+                break;
+            }
+        }
+
+        if (!t) {
+            return;
+        } else if (t === 'i') {
+            value = parseInt(value);
+        } else if (t === 'b') {
+            value = value === 'true';
+        } else if (t === 'f') {
+            value = parseFloat(value);
+        }
+
+        this.req.send(Buffer.concat([
+            msp.encode(key), msp.encode(value)
+        ]));
     }
 }
 
