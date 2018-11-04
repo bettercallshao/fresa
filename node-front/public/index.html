@@ -1,0 +1,94 @@
+<html>
+
+<head>
+    <!-- vue is an overkill for this, and I am pretty sure I am not doing it right :( -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+
+<body>
+
+    <div id="app">
+        <div v-if="showlist">
+            <div v-for="device in devices">
+                <button v-on:click="connect(device)">connect</button>
+                <label> {{ device.value.name }} </label>
+            </div>
+        </div>
+        <div v-else>
+            <button v-on:click="getDevices">back</button>
+            <table class="table table-bordered">
+                <thead>
+                    <tr><td>Name</td><td>Type</td><td>Denominator</td><td>Key</td><td>Value</td></tr>
+                </thead>
+                <tbody>
+                    <tr v-for="param in params">
+                        <td>{{ param.cfg.Name }}</td>
+                        <td>{{ param.cfg.Type }}</td>
+                        <td>{{ param.cfg.Denominator }}</td>
+                        <td>{{ param.key }}</td>
+                        <td>{{ param.value }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                showlist: true,
+                selected: {},
+                devices: [],
+                params: []
+            },
+            methods: {
+                connect: function(device) {
+                    var self = this
+                    $.getJSON('/device/' + device.key, function(data) {
+                        self.selected = data
+                        self.showlist = false
+                    })
+                },
+                getParamCfg: function(paramKey) {
+                    paramCfg = this.selected.value.config.Params
+                    for (var i = 0; i < paramCfg.length; i++) {
+                        if (paramCfg[i].Key == paramKey) {
+                            return paramCfg[i]
+                        }
+                    }
+                    return null
+                },
+                getDevices: function() {
+                    var self = this
+                    $.getJSON('/devices', function(data) {
+                        self.devices = data
+                        self.showlist = true
+                    })
+                }
+            },
+            mounted() {
+                this.getDevices()
+
+                // keep doing this every second
+                var self = this
+                var refresh = function(cb) {
+                    if (!self.showlist) {
+                        $.getJSON('/params', function(data) {
+                            Object.keys(data).map(function(i) {
+                                data[i].cfg = self.getParamCfg(data[i].key)
+                            })
+                            self.params = data
+                        })
+                    }
+                    setTimeout(() => cb(cb), 1000)
+                }
+                refresh(refresh)
+            }
+        })
+    </script>
+</body>
+    
+</html>
