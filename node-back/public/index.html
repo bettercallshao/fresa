@@ -9,15 +9,28 @@
 
 <body>
 
-    <div id="app">
+    <div id="app" style="margin: 25px">
         <div v-if="showlist">
             <div v-for="device in devices">
-                <button v-on:click="connect(device)">connect</button>
+                <button v-on:click="connect(device)">Connect</button>
                 <label> {{ device.value.name }} </label>
             </div>
         </div>
         <div v-else>
-            <button v-on:click="getDevices">back</button>
+            <div style="margin: 10px">
+                <button v-on:click="getDevices">Back</button>
+            </div>
+            <form class="form-inline" action="javascript:void(0);">
+                <div class="form-group">
+                    <label>Key</label>
+                    <input v-model="setKey" type="number" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Value</label>
+                    <input v-model="setValue" type="text" class="form-control">
+                </div>
+                <button v-on:click="setParam">Change</button>
+            </form>
             <table class="table table-bordered">
                 <thead>
                     <tr><td>Name</td><td>Type</td><td>Denominator</td><td>Key</td><td>Value</td></tr>
@@ -42,7 +55,9 @@
                 showlist: true,
                 selected: {},
                 devices: [],
-                params: []
+                params: [],
+                setKey: 0,
+                setValue: 0,
             },
             methods: {
                 connect: function(device) {
@@ -67,7 +82,10 @@
                         self.devices = data
                         self.showlist = true
                     })
-                }
+                },
+                setParam: function() {
+                    $.getJSON('/param/' + this.setKey + '/' + this.setValue);
+                },
             },
             mounted() {
                 this.getDevices()
