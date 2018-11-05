@@ -23,15 +23,15 @@ namespace FresaClient
 
         public void Connect(Config config, string addr)
         {
-            req.Connect(String.Format("tcp://{0}:{1}", addr, config.CacherCmdPort));
-            sub.Connect(String.Format("tcp://{0}:{1}", addr, config.CacherDatPort));
+            req.Connect(String.Format("ws://{0}:{1}", addr, config.CacherCmdPort));
+            sub.Connect(String.Format("ws://{0}:{1}", addr, config.CacherDatPort));
             this.config = config;
 
             Params.Clear();
             req.Send(PackOne(0, 0));
             // this is blocking, we won't return until server has responded
             var data = req.Receive();
-            UnpackToMap(data, ref Params);
+            UnpackToMap(data, config.Params, ref Params);
             // use key 0 to signal everything has changed
             // Alternatively, a event could be emitted for each key but the
             // consideration is it could overload whatever handler for being
@@ -65,7 +65,7 @@ namespace FresaClient
             // data is null when timed out
             if (data != null)
             {
-                var list = UnpackToMap(data, ref Params);
+                var list = UnpackToMap(data, this.config.Params, ref Params);
                 // broadcast for each key changed (expect a single item in the list)
                 foreach (var key in list) {
                     Changed(this, key);
@@ -75,29 +75,31 @@ namespace FresaClient
 
         static byte[] PackOne(int key, object value)
         {
+            var list = new List<object>{ key, value };
             var stream = new System.IO.MemoryStream();
-            MessagePackSerializer.Serialize(stream, key);
-            MessagePackSerializer.Serialize(stream, value);
+            MessagePackSerializer.Serialize(stream, list);
             return stream.ToArray();
         }
 
-        static List<int> UnpackToMap(byte[] data, ref Dictionary<int, object> map)
+        static List<int> UnpackToMap(byte[] data, List<Param> cfgs, ref Dictionary<int, object> map)
         {
-            var list = new List<int>();
             var stream = new System.IO.MemoryStream();
             var total = data.Length;
             stream.Write(data, 0, total);
             stream.Position = 0;
-            while (stream.Position < total)
-            {
-                // expected format (per design):
-                // int (key), obj (value), int (key, obj (value), ...
-                var key = MessagePackSerializer.Deserialize<int>(stream, true);
-                var value = MessagePackSerializer.Deserialize<object>(stream, true);
-                map[key] = value;
-                list.Add(key);
+            var list = MessagePackSerializer.Deserialize<List<object>>(stream, true);
+            var key = (int)list[0];
+            if (key == 0) {
+                var ret = new List<int>();
+                for (int i = 0; i < cfgs.Count; ++i) {
+                    map[cfgs[i].Key] = list[i + 1];
+                    ret.Add(cfgs[i].Key);
+                }
+                return ret;
+            } else {
+                map[key] = list[1];
+                return new List<int> { key };
             }
-            return list;
         }
     }
 }

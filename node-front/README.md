@@ -1,12 +1,12 @@
-# Fresa for nodejs
+# Fresa for frontend
 
 ## First start core servies
-    cd ../core
-    pipenv run python cli.py Start
+
+Refer to ../core
 
 ## Run nodejs example
     npm install
-    npde viewserver.js
+    npm start
 
 ## Browse
-    localhost:3000
+    localhost:8080
