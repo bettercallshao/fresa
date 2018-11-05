@@ -1,0 +1,88 @@
+<html>
+<head>
+  <!-- vue is an overkill for this, and I am pretty sure I am not doing it right :( -->
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/nanomsg-browser@0.1.6/dist/nanomsg.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/msgpack-lite@0.1.26/dist/msgpack.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+<body>
+  <div id="app">
+    <table class="table table-bordered">
+      <thead>
+        <tr><td>Name</td><td>Type</td><td>Denominator</td><td>Key</td><td>Value</td></tr>
+      </thead>
+      <tbody>
+        <tr v-for="param in params">
+          <td>{{ param.Name }}</td>
+          <td>{{ param.Type }}</td>
+          <td>{{ param.Denominator }}</td>
+          <td>{{ param.Key }}</td>
+          <td>{{ param.value }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+<script>
+//--
+const app = new Vue({
+  el: '#app',
+  data: {
+    config: {},
+    params: [],
+    req: new nanomsg.Socket(nanomsg.REQ),
+    sub: new nanomsg.Socket(nanomsg.SUB),
+  },
+  methods: {
+    fromBuf(buf) {
+      const u8 = new Uint8Array(buf);
+      if (u8.length > 0) {
+        const list = msgpack.decode(u8);
+        const key = list[0];
+        const rest = list.slice(1);
+        if (key === 0) {
+          // we receive all values
+          for (let i in this.params) {
+            this.params[i].value = rest[i];
+          }
+        } else {
+          // we receive one value for said key
+          for (let i in this.params) {
+            if (this.params[i].Key === key) {
+              this.params[i].value = rest[0];
+            }
+          }
+        }
+      }
+    },
+  },
+  mounted() {
+    $.getJSON('/fresa/config', (config) => {
+      this.config = config;
+      this.params = config.Params.map((e) => {
+        // trick: let Vue set it with its obsevable stuff
+        Vue.set(e, 'value', null);
+        return e;
+      });
+
+      // prevent conversion to string
+      nanomsg.receiveArrayBuffer = true;
+      this.req.on('data', this.fromBuf);
+      this.sub.on('data', this.fromBuf);
+
+      this.req
+        .connect(`ws://${location.host}/fresa/ws/${config.CacherCmdPort}`)
+        .then(() => {
+          this.req.send(msgpack.encode([0, 0]));
+        });
+      this.sub
+        .connect(`ws://${location.host}/fresa/ws/${config.CacherDatPort}`);
+    });
+  },
+});
+//--
+  </script>
+</body>
+    
+</html>

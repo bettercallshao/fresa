@@ -33,8 +33,8 @@ If you are a embedded software developer (e.g. with a PIC32) and you have writte
 ## FAQ
 * When is it arriving?
 
-    I aim to have a beta by November, 2018.
+    I aim to have a beta by end of November, 2018.
 
 ## How to run
 * Run core services. Refer to ./core
-* Test with one of the UIs. Refer to ./nodejs
+* Test with one of the UIs. Refer to ./node-front ./node-back ./csharp

@@ -1,0 +1,23 @@
+{
+  "name": "fresa-demo-back",
+  "version": "1.0.0",
+  "description": "",
+  "main": "viewserver.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "eslint": "eslint --fix .",
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "msgpack-lite": "^0.1.26",
+    "nanomsg": "^4.0.2",
+    "serve-handler": "^5.0.5"
+  },
+  "devDependencies": {
+    "eslint": "^5.8.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0"
+  }
+}

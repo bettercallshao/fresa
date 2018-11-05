@@ -2,16 +2,16 @@
     "VersionMajor": 0,
     "VersionMinor": 0,
     "DeviceType": "VanilaCore",
-    "HttpserverPort": 8080,
+    "HttpPort": 8999,
 
     "GreeterPort": 9000,
     "LoggerCmdPort": 9001,
     "LoggerDatPort": 9002,
     "CacherCmdPort": 9003,
     "CacherDatPort": 9004,
-    "WatcherCmdPort": 9005,
-    "WatcherDatPort": 9006,
     "LogPath": "/tmp",
+    "LogToFile": true,
+    "LogToConsole": true,
     "Params": [
         {
             "Key": 100,

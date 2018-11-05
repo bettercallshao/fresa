@@ -1,0 +1,20 @@
+#!/usr/bin/env node
+
+/**
+ * Logger: Log server
+ *
+ * Copyright (c) Shaoqing Tan. All rights reserved.
+ */
+
+const Logger = require('../lib/logger.js');
+const getConfig = require('../lib/config.js');
+
+const c = getConfig();
+const s = new Logger(c);
+
+process.on('SIGINT', () => {
+  // give other services some time to make last logs
+  setTimeout(() => {
+    s.close();
+  }, 500);
+});

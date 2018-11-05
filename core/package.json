@@ -1,0 +1,30 @@
+{
+  "name": "fresa",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha",
+    "eslint": "eslint --fix . bin/*",
+    "start": "pm2 start bin/logger bin/greeter bin/cacher bin/http",
+    "stop": "pm2 delete all",
+    "log": "pm2 log logger"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^2.19.0",
+    "express": "^4.16.4",
+    "git-repo-info": "^2.0.0",
+    "http-proxy-middleware": "^0.19.0",
+    "mocha": "^5.2.0",
+    "msgpack-lite": "^0.1.26",
+    "nanomsg": "^4.0.2",
+    "pm2": "^3.2.2"
+  },
+  "devDependencies": {
+    "eslint": "^5.8.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0"
+  }
+}
