@@ -42,6 +42,10 @@ class Logger extends ReppubServer {
   }
 
   unpCb(list) {
+    if (!Array.isArray(list) || list.length !== 4) {
+      return;
+    }
+
     const [verblevel, prefix, tvalue, line] = list;
     const time = new Date(tvalue);
     const data = `[${verblevel}][${prefix}][${time.toISOString()}] ${line}`;

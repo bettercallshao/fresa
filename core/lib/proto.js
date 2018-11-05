@@ -42,7 +42,7 @@ class Unpacker {
   constructor(cb) {
     this.decoder = new msp.Decoder();
     this.decoder.on('data', (list) => {
-      if (list.length < 2) {
+      if (!Array.isArray(list) || list.length < 2) {
         // todo: report error
       } else if (list.length === 2) {
         cb(list);

@@ -1,5 +1,5 @@
 {
-  "name": "fresa-nodejs-demo",
+  "name": "fresa-demo-back",
   "version": "1.0.0",
   "description": "",
   "main": "viewserver.js",
