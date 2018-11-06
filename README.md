@@ -6,7 +6,7 @@ Concise template for buliding UI / hardware interactions
 ## Stack
 | Thing | Decision |
 | --- | --- |
-| Backend Platform | Linux |
+| Backend Platform | Linux / Windows / OSX |
 | Frontend Platform | Linux / Windows / Web |
 | Backend Language | Python / C / NodeJS / Go / Java |
 | Frontend Framework | Qt / C# / Web |
