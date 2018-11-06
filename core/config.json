@@ -10,7 +10,7 @@
     "CacherCmdPort": 9003,
     "CacherDatPort": 9004,
     "LogPath": "/tmp",
-    "LogToFile": true,
+    "LogToFile": false,
     "LogToConsole": true,
     "Params": [
         {
