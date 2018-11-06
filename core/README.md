@@ -1,6 +1,7 @@
 # Configure to run nodejs core
 
 ## Install
+    install python2
     npm install
 
 ## Run
