@@ -1,7 +1,7 @@
 # Configure to run nodejs core
 
 ## Install
-    install make / cc
+    install make / c++
     install python2
     npm install
 
