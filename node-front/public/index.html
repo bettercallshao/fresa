@@ -8,7 +8,18 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 </head>
 <body>
-  <div id="app">
+  <div id="app" style="margin: 25px">
+    <form class="form-inline" action="javascript:void(0);">
+      <div class="form-group">
+        <label>Key</label>
+        <input v-model="setKey" type="number" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>Value</label>
+        <input v-model="setValue" type="text" class="form-control">
+      </div>
+      <button v-on:click="setParam">Change</button>
+    </form>
     <table class="table table-bordered">
       <thead>
         <tr><td>Name</td><td>Type</td><td>Denominator</td><td>Key</td><td>Value</td></tr>
@@ -33,6 +44,8 @@ const app = new Vue({
     params: [],
     req: new nanomsg.Socket(nanomsg.REQ),
     sub: new nanomsg.Socket(nanomsg.SUB),
+    setKey: 0,
+    setValue: 0,
   },
   methods: {
     fromBuf(buf) {
@@ -55,6 +68,30 @@ const app = new Vue({
           }
         }
       }
+    },
+    setParam: function() {
+      const key = parseInt(this.setKey, 10);
+      let t = null;
+      const paramCfg = this.config.Params;
+      for (const { Key, Type } of paramCfg) {
+        if (Key === key) {
+          t = Type;
+          break;
+        }
+      }
+
+      let value = this.setValue;
+      if (!t) {
+        return;
+      } if (t === 'i') {
+        value = parseInt(value, 10);
+      } else if (t === 'b') {
+        value = value === 'true';
+      } else if (t === 'f') {
+        value = parseFloat(value);
+      }
+
+      this.req.send(msgpack.encode([key, value]));
     },
   },
   mounted() {
