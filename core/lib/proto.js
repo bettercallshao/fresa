@@ -14,21 +14,8 @@ const msp = require('msgpack-lite');
  * - the rest are values (one for single param, more for patterns)
  */
 function pack(pairs) {
-  const outs = [];
-
   // iterate over all pairs
-  pairs.forEach(([key, val]) => {
-    // concat the val to same list or append simple element
-    let unit = [key];
-    if (Array.isArray(val)) {
-      unit = unit.concat(val);
-    } else {
-      unit.push(val);
-    }
-
-    // keep all results in a list and concat all at the end
-    outs.push(msp.encode(unit));
-  });
+  const outs = pairs.map(pair => msp.encode(pair));
 
   return Buffer.concat(outs);
 }
@@ -42,12 +29,10 @@ class Unpacker {
   constructor(cb) {
     this.decoder = new msp.Decoder();
     this.decoder.on('data', (list) => {
-      if (!Array.isArray(list) || list.length < 2) {
+      if (!Array.isArray(list) || list.length !== 2) {
         // todo: report error
-      } else if (list.length === 2) {
-        cb(list);
       } else {
-        cb([list[0], list.slice(1)]);
+        cb(list);
       }
     });
   }

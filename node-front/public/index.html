@@ -52,18 +52,17 @@ const app = new Vue({
       const u8 = new Uint8Array(buf);
       if (u8.length > 0) {
         const list = msgpack.decode(u8);
-        const key = list[0];
-        const rest = list.slice(1);
+        const [key, val] = list;
         if (key === 0) {
           // we receive all values
           for (let i in this.params) {
-            this.params[i].value = rest[i];
+            this.params[i].value = val[i];
           }
         } else {
           // we receive one value for said key
           for (let i in this.params) {
             if (this.params[i].Key === key) {
-              this.params[i].value = rest[0];
+              this.params[i].value = val;
             }
           }
         }

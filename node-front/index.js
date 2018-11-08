@@ -16,8 +16,8 @@ const fresaProxy = proxy('/fresa/', {
 const app = express();
 app.use(fresaProxy);
 app.use(express.static('public'));
-app.get('*', function(req, res) {
-    res.redirect('/index.html');
+app.get('*', (req, res) => {
+  res.redirect('/index.html');
 });
 
 const server = app.listen(8080);

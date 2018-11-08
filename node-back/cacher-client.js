@@ -32,10 +32,10 @@ class Client {
 
       if (list[0] === 0) {
         this.config.Params.forEach((p, i) => {
-          this.params[p.Key] = list[i + 1];
+          this.params[p.Key] = list[1][i];
         });
       } else {
-        const [key, val] = list.slice(0, 2);
+        const [key, val] = list;
         this.params[key] = val;
       }
     }

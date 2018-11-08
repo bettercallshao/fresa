@@ -72,23 +72,23 @@ class Cacher extends ReppubServer {
   }
 
   unpCb(lin) {
-    // there are at least two thing in the list
-    const [key, first] = lin.slice(0, 2);
+    // there are two thing in the list
+    const [key, value] = lin;
 
     if (key === 0) {
-      // we are asked to return values, further values are ignored
-      if (first === 0) {
+      // we are asked to return values
+      if (value === 0) {
         // return all predefined keys in its order
         const predKeys = this.config.Params.map(p => p.Key);
         this.rep.send(pack([[0, this.collect(predKeys)]]));
       } else {
         // return a predefined series
-        const keys = this.series.get(first);
+        const keys = this.series.get(value);
         if (keys) {
-          this.rep.send(pack([[first, this.collect(keys)]]));
-        } else if (this.params.has(first)) {
+          this.rep.send(pack([[value, this.collect(keys)]]));
+        } else if (this.params.has(value)) {
           // return single param
-          this.rep.send(pack([[first, this.params.get(first)]]));
+          this.rep.send(pack([[value, this.params.get(value)]]));
         } else {
           // unknown
           this.rep.send('');
@@ -101,10 +101,10 @@ class Cacher extends ReppubServer {
       if (this.series.has(key)) {
         // we are asked to change a series of values
         const keys = this.series.get(key);
-        lout = this.apply(keys, first);
+        lout = this.apply(keys, value);
       } else if (this.params.has(key)) {
         // we are asked to change a single param value
-        lout = this.apply([key], [first]);
+        lout = this.apply([key], [value]);
       } else {
         // can't act
       }
