@@ -4,14 +4,33 @@
  * Copyright (c) Shaoqing Tan. All rights reserved.
  */
 
-const { ReppubServer, proto } = require('fresa-core');
+const { ReppubServer, ReqsubClient, proto } = require('fresa-core');
 const { pack } = proto;
 
+class CacherIf extends ReqsubClient {
+  constructor({ addr, config }) {
+    super({ config, reqCb: (buf) => { this.fromBuf(buf); }, subCb: (buf) => { this.fromBuf(buf); } });
+
+    this.connect({ addr, reqPort: config.CacherCmdPort, subPort: config.CacherDatPort });
+
+    this.frames = new Map();
+  }
+
+  fromBuf(buf) {
+  }
+
+  makeFrame(
+}
+
 class Geom extends ReppubServer {
-  constructor({ config, logger }, cb) {
+  constructor({ addr, config, logger }, cb) {
     super({ config, logger });
 
+    this.addr = addr || 'localhost';
     this.logger = logger || console;
+
+    this.cif = new CacherIf({ addr, config });
+
     this.bind({
       repPort: config.GeomCmdPort,
       pubPort: config.GeomDatPort,
@@ -19,6 +38,11 @@ class Geom extends ReppubServer {
   }
 
   repCb(buf) {
+  }
+
+  close(cb) {
+    this.cif.close();
+    super.close(cb);
   }
 }
 
