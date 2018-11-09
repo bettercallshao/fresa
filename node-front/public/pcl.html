@@ -18,6 +18,7 @@
 const app = new Vue({
   el: '#app',
   data: {
+    gl: {},
     sub: new nanomsg.Socket(nanomsg.SUB),
     dec: new msgpack.Decoder(),
   },
@@ -27,76 +28,44 @@ const app = new Vue({
       this.dec.decode(new Uint8Array(buf));
     },
     fromList(list) {
+      const { scene, camera, webGLRenderer } = this.gl;
+      if (scene.getObjectByName("particles")) {
+        scene.remove(scene.getObjectByName("particles"));
+      }
       const geom = new THREE.Geometry();
-      const material = new THREE.PointCloudMaterial({
+      const material = new THREE.PointsMaterial({
         size: 1,
         vertexColors: true,
       });
       list.forEach((e) => {
         const particle = new THREE.Vector3(e[0], e[1], e[2]);
         geom.vertices.push(particle);
-        const color = new THREE.color(0);
+        const color = new THREE.Color(e[3], e[4], e[5]);
         geom.colors.push(color);
       });
-      const cloud = new THREE.PointCloud(geom, material);
+      const cloud = new THREE.Points(geom, material);
       cloud.name = "particles";
-      this.scene.add(cloud);
+      scene.add(cloud);
       requestAnimationFrame(() => {
-        webGLRenderer.render(this.scene, this.camera);
+        webGLRenderer.render(scene, camera);
       });
     },
-    pcl() {
-      var scene = new THREE.Scene();
-      var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-      var webGLRenderer = new THREE.WebGLRenderer();
+    initGl() {
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(60, 1.0, 0.1, 1000);
+      camera.position.set(20, 20, 20);
+      camera.lookAt(0, 0, 0);
+      const webGLRenderer = new THREE.WebGLRenderer();
       webGLRenderer.setClearColor(new THREE.Color(0x000000, 1.0));
-      webGLRenderer.setSize(window.innerWidth, window.innerHeight);
-      camera.position.x = 20;
-      camera.position.y = 0;
-      camera.position.z = 150;
+      webGLRenderer.setSize(600, 600);
       document.getElementById("WebGL-output").appendChild(webGLRenderer.domElement);
-
-        if (scene.getObjectByName("particles")) {
-            scene.remove(scene.getObjectByName("particles"));
-        }
-        createParticles();
-
-    render();
-
-    function createParticles() {
-        var geom = new THREE.Geometry();
-        var material = new THREE.PointCloudMaterial({
-            size: 4,
-            vertexColors: true,
-        });
-
-        var range = 10;
-        for (var i = 0; i < 150; i++) {
-            var particle = new THREE.Vector3(Math.random() * range - range / 2, Math.random() * range - range / 2, Math.random() * range - range / 2);
-            geom.vertices.push(particle);
-            var color = new THREE.Color(0x000000);
-            geom.colors.push(color);
-        }
-
-        cloud = new THREE.PointCloud(geom, material);
-        cloud.name = "particles";
-        scene.add(cloud);
-    }
-
-    var step = 0;
-
-    function render() {
-
-        requestAnimationFrame(render);
-        webGLRenderer.render(scene, camera);
-    }
-
+      this.gl = { scene, camera, webGLRenderer };
     },
   },
   mounted() {
-    $.getJSON('/fresa/config', (config) => {
-      this.pcl();
+    this.initGl();
 
+    $.getJSON('/fresa/config', (config) => {
       this.config = config;
 
       // prevent conversion to string

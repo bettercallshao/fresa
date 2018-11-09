@@ -7,11 +7,11 @@ import numpy as np
 
 def GenPointCloud(cnt):
     pts = []
-    for theta in np.linspace(0, np.pi / 2, 10):
+    for theta in np.linspace(0, np.pi / 2, 30):
         x = 10 * np.cos(theta + cnt / 30.0)
         y = 10 * np.sin(theta + cnt / 30.0)
-        for z in np.linspace(0, 10, 10):
-            pts.append([x, y, z, int(z * 100), int(200 - z * 100), int(128)])
+        for z in np.linspace(0, 10.0, 10):
+            pts.append([x, y, z, z / 10, 1 - z / 10, 0.5])
 
     return pts, cnt + 1
 
@@ -22,7 +22,7 @@ def Serve(config):
 
     cnt = 0
     while True:
-        time.sleep(1)
+        time.sleep(0.2)
         data, cnt = GenPointCloud(cnt)
         pkr = msp.Packer(autoreset = False)
         pkr.pack(data)
