@@ -13,32 +13,28 @@ class Client {
     this.config = {};
     this.req = nng.socket('req');
     this.sub = nng.socket('sub');
+    this.dec = new msp.Decoder();
     this.params = {};
 
     this.req.on('data', (buf) => {
-      // we expect the exact number of params in the config
       this.fromBuf(buf);
     });
 
     this.sub.on('data', (buf) => {
       this.fromBuf(buf);
     });
+
+    this.dec.on('data', (list) => {
+      this.fromList(list);
+    });
   }
 
   fromBuf(buf) {
-    if (buf.length > 0) {
-      // make the multi object buffer into list
-      const list = msp.decode(buf);
+    this.dec.decode(buf);
+  }
 
-      if (list[0] === 0) {
-        this.config.Params.forEach((p, i) => {
-          this.params[p.Key] = list[1][i];
-        });
-      } else {
-        const [key, val] = list;
-        this.params[key] = val;
-      }
-    }
+  fromList([key, val]) {
+    this.params[key] = val;
   }
 
   close() {

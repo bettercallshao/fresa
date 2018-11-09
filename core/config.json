@@ -1,68 +1,50 @@
 {
-    "VersionMajor": 0,
-    "VersionMinor": 0,
-    "DeviceType": "VanilaCore",
-    "HttpPort": 8999,
+  "VersionMajor": 0,
+  "VersionMinor": 0,
+  "DeviceType": "VanilaCore",
+  "HttpPort": 8999,
 
-    "GreeterPort": 9000,
-    "LoggerCmdPort": 9001,
-    "LoggerDatPort": 9002,
-    "CacherCmdPort": 9003,
-    "CacherDatPort": 9004,
-    "LogPath": "/tmp",
-    "LogToFile": false,
-    "LogToConsole": true,
-    "Params": [
-        {
-            "Key": 100,
-            "Name": "a_int",
-            "Type": "i",
-            "Denominator": 100
-        },
-        {
-            "Key": 101,
-            "Name": "a_binary",
-            "Type": "b"
-        },
-        {
-            "Key": 102,
-            "Name": "a_string",
-            "Type": "s"
-        },
-        {
-            "Key": 103,
-            "Name": "a_float",
-            "Type": "f"
-        }
-    ],
-    "Series": [
-        {
-            "Key": -100,
-            "Name": "a_serie",
-            "Serie": [100, 101, 102, 103]
-        },
-        {
-            "Key": -101,
-            "Name": "another_serie",
-            "Serie": [101, 102, 103, 100]
-        }
-    ],
-    "Services": [
-        {
-            "Key": 1,
-            "Name": "greeter"
-        },
-        {
-            "Key": 2,
-            "Name": "logger"
-        },
-        {
-            "Key": 3,
-            "Name": "cacher"
-        },
-        {
-            "Key": 4,
-            "Name": "watcher"
-        }
-    ]
+  "GreeterPort": 9000,
+  "LoggerCmdPort": 9001,
+  "LoggerDatPort": 9002,
+  "CacherCmdPort": 9003,
+  "CacherDatPort": 9004,
+  "LogPath": "/tmp",
+  "LogToFile": false,
+  "LogToConsole": true,
+  "Params": [
+    {
+      "Key": 100,
+      "Name": "a_int",
+      "Type": "i",
+      "Denominator": 100
+    },
+    {
+      "Key": 101,
+      "Name": "a_binary",
+      "Type": "b"
+    },
+    {
+      "Key": 102,
+      "Name": "a_string",
+      "Type": "s"
+    },
+    {
+      "Key": 103,
+      "Name": "a_float",
+      "Type": "f"
+    }
+  ],
+  "Series": [
+    {
+      "Key": -100,
+      "Name": "a_serie",
+      "Serie": [100, 101, 102, 103]
+    },
+    {
+      "Key": -101,
+      "Name": "another_serie",
+      "Serie": [101, 102, 103, 100]
+    }
+  ]
 }

@@ -40,18 +40,8 @@ class Cacher extends ReppubServer {
     this.unpacker.feed(buf);
   }
 
-  collect(keys) {
-    return keys.map(key => this.params.get(key));
-  }
-
   apply(keys, values) {
-    if (keys.length === values.length) {
-      // this is a normal series / single param
-    } else if (keys.length === 1 && !Array.isArray(values)) {
-      // this is a series but with only one param
-      values = [values];
-    } else {
-      // this is unknown, fail silently
+    if (keys.length !== values.length) {
       return [];
     }
 
@@ -78,14 +68,15 @@ class Cacher extends ReppubServer {
     if (key === 0) {
       // we are asked to return values
       if (value === 0) {
-        // return all predefined keys in its order
-        const predKeys = this.config.Params.map(p => p.Key);
-        this.rep.send(pack([[0, this.collect(predKeys)]]));
+        // return all keys present in separate messages
+        const values = Array.from(this.params);
+        this.rep.send(pack(values));
       } else {
         // return a predefined series
         const keys = this.series.get(value);
         if (keys) {
-          this.rep.send(pack([[value, this.collect(keys)]]));
+          const values = keys.map(key => this.params.get(key));
+          this.rep.send(pack([[value, values]]));
         } else if (this.params.has(value)) {
           // return single param
           this.rep.send(pack([[value, this.params.get(value)]]));
@@ -104,6 +95,9 @@ class Cacher extends ReppubServer {
         lout = this.apply(keys, value);
       } else if (this.params.has(key)) {
         // we are asked to change a single param value
+        lout = this.apply([key], [value]);
+      } else if (key > 255) {
+        // we allow numbers greater than 255 to be defined runtime
         lout = this.apply([key], [value]);
       } else {
         // can't act

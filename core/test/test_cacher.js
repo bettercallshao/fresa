@@ -37,11 +37,11 @@ describe('cacher', () => {
         c.connect({ addr: 'localhost', reqPort: 9990, subPort: 9991 }, () => {
           c.req.send(pack([[-100, [true, 'js', 4.55, 99]]]));
           setTimeout(() => {
-            c.req.send(pack([[0, 0]]));
+            c.req.send(pack([[0, 102]]));
             setTimeout(() => {
               c.req.send(pack([[0, -100]]));
               setTimeout(() => {
-                c.req.send(pack([[0, 102]]));
+                c.req.send(pack([[0, 0]]));
               }, 20);
             }, 20);
           }, 20);
@@ -49,15 +49,13 @@ describe('cacher', () => {
         setTimeout(() => {
           s.close();
           c.close();
-          if (recv[0][0] === 0 && recv[0][1][0] === 99
-                                  && recv[0][1][1] === true
-                                  && recv[0][1][2] === 'js'
-                                  && recv[0][1][3] === 4.55
+          if (recv[0][0] === 102 && recv[0][1] === 'js'
               && recv[1][0] === -100 && recv[1][1][0] === true
                                      && recv[1][1][1] === 'js'
                                      && recv[1][1][2] === 4.55
                                      && recv[1][1][3] === 99
-              && recv[2][0] === 102 && recv[2][1] === 'js') {
+              && recv[2][0] === 100 && recv[2][1] === 99
+              && recv[5][0] === 103 && recv[5][1] === 4.55) {
             done();
           } else {
             done(new Error(recv));

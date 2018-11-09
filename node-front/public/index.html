@@ -44,27 +44,20 @@ const app = new Vue({
     params: [],
     req: new nanomsg.Socket(nanomsg.REQ),
     sub: new nanomsg.Socket(nanomsg.SUB),
+    dec: new msgpack.Decoder(),
     setKey: 0,
     setValue: 0,
   },
   methods: {
     fromBuf(buf) {
-      const u8 = new Uint8Array(buf);
-      if (u8.length > 0) {
-        const list = msgpack.decode(u8);
-        const [key, val] = list;
-        if (key === 0) {
-          // we receive all values
-          for (let i in this.params) {
-            this.params[i].value = val[i];
-          }
-        } else {
-          // we receive one value for said key
-          for (let i in this.params) {
-            if (this.params[i].Key === key) {
-              this.params[i].value = val;
-            }
-          }
+      // feed decoder stream
+      this.dec.decode(new Uint8Array(buf));
+    },
+    fromList([key, val]) {
+      // we receive value and key
+      for (let i in this.params) {
+        if (this.params[i].Key === key) {
+          this.params[i].value = val;
         }
       }
     },
@@ -106,6 +99,7 @@ const app = new Vue({
       nanomsg.receiveArrayBuffer = true;
       this.req.on('data', this.fromBuf);
       this.sub.on('data', this.fromBuf);
+      this.dec.on('data', this.fromList);
 
       this.req
         .connect(`ws://${location.host}/fresa/ws/${config.CacherCmdPort}`)
