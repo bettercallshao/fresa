@@ -1,0 +1,17 @@
+#!/usr/bin/env node
+
+/**
+ * Geom: Geometry server
+ *
+ * Copyright (c) Shaoqing Tan. All rights reserved.
+ */
+
+const Geom = require('../lib/geom.js');
+
+// give logger 500ms to start first
+setTimeout(() => {
+  const s = new Geom({ config: c });
+  process.on('SIGINT', () => {
+    s.close();
+  });
+}, 500);
