@@ -11,9 +11,9 @@ def GenPointCloud(cnt):
         x = 10 * np.cos(theta + cnt / 30.0)
         y = 10 * np.sin(theta + cnt / 30.0)
         for z in np.linspace(0, 10.0, 10):
-            x += np.random.normal(0, 0.3)
-            y += np.random.normal(0, 0.3)
-            z += np.random.normal(0, 0.3)
+            x += np.random.normal(0, 0.05)
+            y += np.random.normal(0, 0.05)
+            z += np.random.normal(0, 0.05)
             pts.append([x, y, z, z / 10, theta * 2 / np.pi, (np.sin(cnt / 50.0) + 1) / 2 ])
 
     return pts, cnt + 1
