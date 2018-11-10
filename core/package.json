@@ -7,7 +7,7 @@
     "test": "mocha",
     "eslint": "eslint --fix . bin/*",
     "start": "pm2 start bin/logger bin/greeter bin/cacher bin/http",
-    "stop": "pm2 delete all",
+    "stop": "pm2 delete logger greeter cacher http",
     "log": "pm2 log logger"
   },
   "author": "",
